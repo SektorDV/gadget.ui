@@ -40,6 +40,15 @@ const Machine = () => {
       hubConnection.on("ServiceStatusChanged", (response) => {
         updateService(response.name, response.status);
       });
+      hubConnection.onclose(() => {
+        setConnectionState("Disconnected");
+      });
+      hubConnection.onreconnecting(() => {
+        setConnectionState("Reconnecting");
+      });
+      hubConnection.onreconnected(() => {
+        setConnectionState("Reconnected");
+      });
       const start = async () => {
         if (hubConnection.state === "Disconnected")
           try {
@@ -52,17 +61,18 @@ const Machine = () => {
 
       start().then(() => {
         hubConnection.invoke("RegisterDashboard", {});
+        setConnectionState("Connected");
       });
     }
   }, [hubConnection, services]);
 
-  useEffect(() => {
-    const stateInterval = setInterval(() => {
-      if (hubConnection && hubConnection.state)
-        setConnectionState(hubConnection.state);
-    }, 100);
-    return () => clearInterval(stateInterval);
-  });
+  // useEffect(() => {
+  //   const stateInterval = setInterval(() => {
+  //     if (hubConnection && hubConnection.state)
+  //       setConnectionState(hubConnection.state);
+  //   }, 100);
+  //   return () => clearInterval(stateInterval);
+  // });
 
   const updateService = (name, status) => {
     const buffer = services;
