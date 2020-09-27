@@ -34,10 +34,9 @@ const Machine = () => {
   }, []);
 
   useEffect(() => {
-    if (hubConnection !== null) {
+    if (hubConnection !== null && services) {
       hubConnection.on("ServiceStatusChanged", (response) => {
         updateService(response.name, response.status);
-        console.log(response);
       });
       const start = async () => {
         if (hubConnection.state === "Disconnected")
@@ -53,13 +52,13 @@ const Machine = () => {
         hubConnection.invoke("RegisterDashboard", {});
       });
     }
-  }, [hubConnection]);
+  }, [hubConnection, services]);
 
   const updateService = (name, status) => {
     const buffer = services;
     const serviceIndex = buffer.findIndex((service) => service.name === name);
     buffer[serviceIndex] = { name, status };
-    setServices(buffer);
+    setServices([...buffer]);
   };
 
   const startService = (ServiceName) => {
