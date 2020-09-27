@@ -12,15 +12,6 @@ import { useParams } from "react-router-dom";
 import { SIGNALR_URL } from "config";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
-const useConnectionState = (connection) => {
-  const [connectionState, setConnectionState] = useState("No connection");
-  useEffect(() => {
-    setConnectionState(connection.state);
-  }, [connection.state]);
-
-  return connectionState;
-};
-
 const Machine = () => {
   const [services, setServices] = useState();
   const [isButtonActive, setButtonActive] = useState(false);
