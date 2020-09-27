@@ -12,10 +12,20 @@ import { useParams } from "react-router-dom";
 import { SIGNALR_URL } from "config";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
+const useConnectionState = (connection) => {
+  const [connectionState, setConnectionState] = useState("No connection");
+  useEffect(() => {
+    setConnectionState(connection.state);
+  }, [connection.state]);
+
+  return connectionState;
+};
+
 const Machine = () => {
   const [services, setServices] = useState();
   const [isButtonActive, setButtonActive] = useState(false);
   const [hubConnection, setHubConnection] = useState(null);
+  const [connectionState, setConnectionState] = useState("");
   const { machineId } = useParams();
 
   useEffect(() => {
@@ -50,12 +60,18 @@ const Machine = () => {
       };
 
       start().then(() => {
-        hubConnection.invoke("RegisterDashboard", {}).then(() => {
-          setButtonActive(true);
-        });
+        hubConnection.invoke("RegisterDashboard", {});
       });
     }
   }, [hubConnection, services]);
+
+  useEffect(() => {
+    const stateInterval = setInterval(() => {
+      if (hubConnection && hubConnection.state)
+        setConnectionState(hubConnection.state);
+    }, 100);
+    return () => clearInterval(stateInterval);
+  });
 
   const updateService = (name, status) => {
     const buffer = services;
@@ -96,17 +112,19 @@ const Machine = () => {
                 </ServiceStatus>
                 {service.status === "Running" ? (
                   <ServiceButton
-                    disabled={!isButtonActive}
+                    disabled={connectionState !== "Connected"}
                     onClick={() => stopService(service.name)}
                   >
-                    Stop
+                    {connectionState === "Connected" ? "Stop" : connectionState}
                   </ServiceButton>
                 ) : (
                   <ServiceButton
-                    disabled={!isButtonActive}
+                    disabled={connectionState !== "Connected"}
                     onClick={() => startService(service.name)}
                   >
-                    Start
+                    {connectionState === "Connected"
+                      ? "Start"
+                      : connectionState}
                   </ServiceButton>
                 )}
               </Service>
