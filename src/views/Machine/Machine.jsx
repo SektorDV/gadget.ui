@@ -14,6 +14,7 @@ import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
 const Machine = () => {
   const [services, setServices] = useState();
+  const [isButtonActive, setButtonActive] = useState(false);
   const [hubConnection, setHubConnection] = useState(null);
   const { machineId } = useParams();
 
@@ -49,7 +50,9 @@ const Machine = () => {
       };
 
       start().then(() => {
-        hubConnection.invoke("RegisterDashboard", {});
+        hubConnection.invoke("RegisterDashboard", {}).then(() => {
+          setButtonActive(true);
+        });
       });
     }
   }, [hubConnection, services]);
@@ -92,11 +95,17 @@ const Machine = () => {
                   {service.status}
                 </ServiceStatus>
                 {service.status === "Running" ? (
-                  <ServiceButton onClick={() => stopService(service.name)}>
+                  <ServiceButton
+                    disabled={!isButtonActive}
+                    onClick={() => stopService(service.name)}
+                  >
                     Stop
                   </ServiceButton>
                 ) : (
-                  <ServiceButton onClick={() => startService(service.name)}>
+                  <ServiceButton
+                    disabled={!isButtonActive}
+                    onClick={() => startService(service.name)}
+                  >
                     Start
                   </ServiceButton>
                 )}
